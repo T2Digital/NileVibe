@@ -1,149 +1,149 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="NileVibe - اكتشف القاهرة بفخامة مع سيارات وسائقين مميزين!">
-  <title>NileVibe - رحلتك الفاخرة في القاهرة</title>
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
-  <link rel="stylesheet" href="https://unpkg.com/mapbox-gl@2.9.0/dist/mapbox-gl.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-</head>
-<body>
-  <div class="header">
-    <div class="header-content">
-      <img src="logo-placeholder.png" alt="NileVibe Logo" class="logo">
-      <div class="header-text">
-        <h1>NileVibe</h1>
-        <p>اكتشف القاهرة بأسلوب لا يُنسى</p>
-      </div>
-    </div>
-    <nav class="nav">
-      <button onclick="scrollToSection('video')">الرئيسية</button>
-      <button onclick="scrollToSection('booking')">تأجير سيارة</button>
-      <button onclick="scrollToSection('map')">الخريطة</button>
-      <button onclick="scrollToSection('schedule')">برنامج الرحلة</button>
-      <button onclick="scrollToSection('about')">من نحن</button>
-      <button onclick="scrollToSection('contact')">اتصل بنا</button>
-    </nav>
-  </div>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  <!-- Video Section -->
-  <section id="video" class="section">
-    <div class="video-container">
-      <video autoplay loop muted playsinline class="video-bg">
-        <source src="https://assets.pexels.com/videos/2025129/pexels-aerial-view-of-the-nile-river-2025129.mp4" type="video/mp4">
-      </video>
-      <div class="video-caption">استمتع بالنيل الفاخر<span class="offer"> - خصم 10% اليوم!</span></div>
-    </div>
-  </section>
+body {
+  font-family: 'Montserrat', sans-serif;
+  direction: rtl;
+  background: #121212;
+  color: #fff;
+  overflow-x: hidden;
+  position: relative;
+}
 
-  <!-- Booking Section -->
-  <section id="booking" class="section">
-    <div class="container">
-      <h2>تأجير سيارة فاخرة</h2>
-      <div class="car-selection">
-        <h3>اختر سيارتك</h3>
-        <div id="car-grid"></div>
-      </div>
-      <form id="booking-form">
-        <label>تاريخ الوصول</label>
-        <input type="date" id="start-date" required>
-        <label>تاريخ المغادرة</label>
-        <input type="date" id="end-date" required>
-        <label>وقت الوصول</label>
-        <input type="time" id="arrival-time" required>
-        <label>وقت المغادرة</label>
-        <input type="time" id="departure-time" required>
-        <label>موقع الاستلام</label>
-        <input type="text" id="pickup-location" placeholder="مثل: مطار القاهرة" required>
-        <label>موقع التسليم</label>
-        <input type="text" id="dropoff-location" placeholder="مثل: فندق ماريوت" required>
-        <div id="total-price">السعر الإجمالي: 0 جنيه</div>
-        <p class="payment-note">يتم دفع المبلغ بالكامل بمجرد الاستلام</p>
-        <button type="submit">تأكيد الحجز</button>
-      </form>
-    </div>
-  </section>
+.header {
+  background: #121212;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
 
-  <!-- Map Section -->
-  <section id="map" class="section">
-    <div class="container">
-      <h2>اكتشف الأماكن</h2>
-      <div class="map-wrapper">
-        <div id="map-container">
-          <div id="virtual-tour-label" class="virtual-tour-label"></div>
-        </div>
-        <div class="places-panel">
-          <input type="text" id="place-picker" placeholder="ابحث عن مكان">
-          <div class="filter-buttons">
-            <button class="filter-btn" onclick="filterPlaces('restaurant')">مطاعم</button>
-            <button class="filter-btn" onclick="filterPlaces('cafe')">كافيهات</button>
-            <button class="filter-btn" onclick="filterPlaces('nightlife')">سهرات</button>
-            <button class="filter-btn" onclick="filterPlaces('lounge')">لاونج</button>
-            <button class="filter-btn" onclick="filterPlaces('tourist')">سياحية</button>
-            <button class="filter-btn" onclick="filterPlaces('nile_cruise')">رحلات نيلية</button>
-            <button class="filter-btn" id="virtual-tour-btn">جولة افتراضية</button>
-          </div>
-          <div id="places-list" class="places-list"></div>
-        </div>
-      </div>
-      <div id="map-fallback" class="map-fallback">جارٍ تحميل الخريطة...</div>
-    </div>
-  </section>
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
 
-  <!-- Schedule Section -->
-  <section id="schedule" class="section">
-    <div class="container">
-      <h2>برنامج الرحلة الأسبوعي</h2>
-      <p id="schedule-suggestion" class="schedule-suggestion"></p>
-      <div class="schedule-table">
-        <table id="schedule-table"></table>
-      </div>
-      <div class="calendar-actions">
-        <button onclick="saveCalendar()">حفظ البرنامج</button>
-        <button onclick="generatePDF()">تحميل كـ PDF</button>
-      </div>
-    </div>
-  </section>
+.logo {
+  width: 80px;
+}
 
-  <!-- About Section -->
-  <section id="about" class="section">
-    <div class="container">
-      <h2>من نحن</h2>
-      <p>NileVibe هي تجربتك الفاخرة لاستكشاف القاهرة بسيارات مميزة وسائقين محترفين. نسعى لتقديم رحلة مريحة وممتعة تجمع بين الفخامة والثقافة المصرية الأصيلة، سواء كنت تزور الأهرامات، تستمتع بمأكولات النيل، أو تكتشف الحياة الليلية النابضة بالحياة.</p>
-    </div>
-  </section>
+.header-text {
+  text-align: center;
+}
 
-  <!-- Contact Section -->
-  <section id="contact" class="section">
-    <div class="container">
-      <h2>معلومات التواصل</h2>
-      <div class="contact-info">
-        <p><i class="fas fa-envelope"></i> info@nilevibe.com</p>
-        <p><i class="fas fa-phone"></i> +20 123 456 7890</p>
-        <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/+201234567890" target="_blank">راسلنا على واتساب</a></p>
-      </div>
-    </div>
-  </section>
+.header-text h1 {
+  font-size: 1.8em;
+  color: #FFD700;
+}
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <p>© 2025 NileVibe. جميع الحقوق محفوظة.</p>
-      <div class="social-icons">
-        <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
-        <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
-        <a href="https://x.com" target="_blank"><i class="fab fa-x-twitter"></i></a>
-      </div>
-    </div>
-  </footer>
+.header-text p {
+  font-size: 0.9em;
+  color: #B0B0B0;
+}
 
-  <script src="https://unpkg.com/mapbox-gl@2.9.0/dist/mapbox-gl.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.js"></script>
-  <script src="script.js"></script>
-</body>
-</html>
+.nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+
+.nav button {
+  padding: 8px 15px;
+  background: #FFD700;
+  color: #121212;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s, background 0.3s;
+  z-index: 1001;
+  font-size: 0.9em;
+}
+
+.nav button:hover {
+  background: #FFEA00;
+  transform: scale(1.05);
+}
+
+.section {
+  padding: 20px;
+  margin-top: 140px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* Neon Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice"><defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g opacity="0.3" filter="url(#glow)"><path d="M200 700 L300 600 L400 700" fill="none" stroke="#FFD700" stroke-width="5" /><path d="M350 650 L450 550 L550 650" fill="none" stroke="#FFD700" stroke-width="5" /><path d="M500 600 Q600 500 700 600" fill="none" stroke="#FFD700" stroke-width="5" /><path d="M600 700 C650 650 700 650 750 700" fill="none" stroke="#FFD700" stroke-width="5" /><path d="M800 600 L850 550 L900 600" fill="none" stroke="#FFD700" stroke-width="5" /></g><animateTransform attributeName="transform" type="translate" from="0 0" to="100 100" dur="20s" repeatCount="indefinite"/></svg>') no-repeat center center;
+  background-size: cover;
+  z-index: -1;
+  animation: neonGlow 20s infinite linear;
+}
+
+@keyframes neonGlow {
+  0% { transform: translate(0, 0); opacity: 0.3; }
+  50% { opacity: 0.5; }
+  100% { transform: translate(100px, 100px); opacity: 0.3; }
+}
+
+/* Video Section */
+.video-container {
+  width: 100%;
+  height: calc(100vh - 140px);
+  position: relative;
+  overflow: hidden;
+}
+
+.video-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-caption {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(18, 18, 18, 0.7);
+  color: #FFD700;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1.3em;
+  animation: slideIn 1s ease-in-out;
+}
+
+.video-caption .offer {
+  display: block;
+  font-size: 0.7em;
+  color: #FFEA00;
+  margin-top: 5px;
+  animation: fadeInOut 3s infinite;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Map 
