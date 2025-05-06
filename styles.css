@@ -10,6 +10,7 @@ body {
   background: #121212;
   color: #fff;
   overflow-x: hidden;
+  position: relative;
 }
 
 .header {
@@ -17,8 +18,10 @@ body {
   text-align: center;
   padding: 30px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
-  position: relative;
-  z-index: 10;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
 .logo {
@@ -42,9 +45,10 @@ body {
   gap: 20px;
   padding: 15px;
   background: #121212;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  position: fixed;
+  top: 150px;
+  width: 100%;
+  z-index: 999;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
@@ -67,6 +71,7 @@ body {
 .section {
   display: none;
   padding: 40px 20px;
+  margin-top: 200px; /* مساحة للهيدر والنافبار */
   animation: fadeIn 0.5s ease-in;
 }
 
@@ -74,20 +79,48 @@ body {
   display: block;
 }
 
+/* Neon Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice"><defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g opacity="0.3" filter="url(#glow)"><path d="M200 700 L300 600 L400 700" fill="none" stroke="#FFD700" stroke-width="5" /><path d="M350 650 L450 550 L550 650" fill="none" stroke="#FFD700" stroke-width="5" /><path d="M500 600 Q600 500 700 600" fill="none" stroke="#FFD700" stroke-width="5" /><path d="M600 700 C650 650 700 650 750 700" fill="none" stroke="#FFD700" stroke-width="5" /><path d="M800 600 L850 550 L900 600" fill="none" stroke="#FFD700" stroke-width="5" /></g><animateTransform attributeName="transform" type="translate" from="0 0" to="100 100" dur="20s" repeatCount="indefinite"/></svg>') no-repeat center center;
+  background-size: cover;
+  z-index: -1;
+  animation: neonGlow 20s infinite linear;
+}
+
+@keyframes neonGlow {
+  0% { transform: translate(0, 0); opacity: 0.3; }
+  50% { opacity: 0.5; }
+  100% { transform: translate(100px, 100px); opacity: 0.3; }
+}
+
 /* Slider */
 .swiper-container {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 200px); /* ارتفاع أقل لتجنب التأثير على الهيدر */
 }
 
 .swiper-slide {
   position: relative;
+  overflow: hidden;
 }
 
 .swiper-slide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  animation: kenBurns 10s infinite;
+}
+
+@keyframes kenBurns {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .slide-caption {
@@ -99,6 +132,26 @@ body {
   padding: 10px 20px;
   border-radius: 5px;
   font-size: 1.5em;
+  animation: slideIn 1s ease-in-out;
+}
+
+.slide-caption .offer {
+  display: block;
+  font-size: 0.8em;
+  color: #FFEA00;
+  margin-top: 5px;
+  animation: fadeInOut 3s infinite;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 .swiper-pagination-bullet-active {
@@ -107,24 +160,6 @@ body {
 
 .swiper-button-next, .swiper-button-prev {
   color: #FFD700;
-}
-
-/* Wave Animation */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.2), transparent);
-  animation: wave 10s infinite linear;
-  z-index: -1;
-}
-
-@keyframes wave {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(1000px); }
 }
 
 /* Map */
@@ -287,6 +322,13 @@ form input {
   color: #fff;
 }
 
+.payment-note {
+  color: #FFD700;
+  font-size: 1em;
+  text-align: center;
+  margin: 10px 0;
+}
+
 #total-price {
   color: #FFD700;
   font-size: 1.2em;
@@ -321,73 +363,4 @@ form button:hover {
   margin: 10px 0;
   background: #1A1A1A;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-}
-
-.activity img {
-  width: 60px;
-  height: 60px;
-  margin-left: 15px;
-  border-radius: 5px;
-}
-
-.activity span {
-  flex-grow: 1;
-  color: #B0B0B0;
-}
-
-.activity .icon {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-left: 10px;
-}
-
-.schedule-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.schedule-actions input {
-  flex-grow: 1;
-  padding: 10px;
-  border: 1px solid #FFD700;
-  border-radius: 5px;
-  background: #1A1A1A;
-  color: #fff;
-}
-
-.schedule-actions button {
-  padding: 10px 20px;
-  background: #FFD700;
-  color: #121212;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.schedule-actions button:hover {
-  background: #FFEA00;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@media (max-width: 768px) {
-  .nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-  }
-  .place-picker-container {
-    top: 10px;
-    right: 10px;
-    width: 90%;
-  }
-  #place-picker {
-    width: 100%;
-  }
-}
+  box-shad
