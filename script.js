@@ -49,28 +49,24 @@ function initMap() {
       });
 
       document.getElementById('virtual-tour-btn').addEventListener('click', () => {
-        // Define tour path with place names
         const tourPath = [
-          { location: [31.1342, 29.9792], name: "الأهرامات" },
-          { location: [31.2396, 30.0491], name: "زووبا" },
-          { location: [31.2108, 30.0626], name: "Cairo Jazz Club" },
-          { location: [31.2336, 30.0481], name: "المتحف المصري" },
-          { location: [31.2243, 30.0460], name: "برج القاهرة" },
-          { location: [31.2425, 30.0505], name: "تبولة" }
+          [31.1342, 29.9792], // Pyramids
+          [31.2396, 30.0491], // Zooba
+          [31.2108, 30.0626], // Cairo Jazz Club
+          [31.2336, 30.0481], // Egyptian Museum
+          [31.2243, 30.0460], // Cairo Tower
+          [31.2425, 30.0505]  // Taboula
         ];
         let i = 0;
-        showNotification('بدأت الجولة الافتراضية!', 'success');
         const tourInterval = setInterval(() => {
           if (i < tourPath.length) {
-            map.flyTo({ center: tourPath[i].location, zoom: 15 });
-            // Show place name in a notification
-            showNotification(`الآن في: ${tourPath[i].name}`, 'info');
+            map.flyTo({ center: tourPath[i], zoom: 15 });
             i++;
           } else {
             clearInterval(tourInterval);
-            showNotification('انتهت الجولة الافتراضية!', 'success');
           }
         }, 3000);
+        showNotification('بدأت الجولة الافتراضية!', 'success');
       });
     });
   } catch (error) {
@@ -359,7 +355,7 @@ function showNotification(message, type = 'success') {
     duration: 3000,
     gravity: "bottom",
     position: "right",
-    backgroundColor: type === 'success' ? "#FFD700" : type === 'error' ? "#FF5555" : "#FFEA00",
+    backgroundColor: type === 'success' ? "#FFD700" : "#FF5555",
     className: "notification"
   }).showToast();
 }
@@ -372,7 +368,7 @@ window.scrollToSection = function(sectionId) {
 };
 
 window.openWhatsApp = function() {
-  window.open('https://wa.me/+201125845757', '_blank');
+  window.open('https://wa.me/+201234567890', '_blank');
 };
 
 // Initialize
