@@ -44,7 +44,7 @@ const places = [
   { name: "الأهرامات", location: [31.1342, 29.9792], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294202-d308847", image: "https://images.unsplash.com/photo-1573051129930-39527d6d8e62" },
   { name: "خان الخليلي", location: [31.2622, 30.0478], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308844", image: "https://images.unsplash.com/photo-1602774897447-16c7273db418" },
   { name: "المتحف المصري", location: [31.2336, 30.0481], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308838", image: "https://images.unsplash.com/photo-1591117207239-99a08b78ebb7" },
-  { name: "برج القاهرة", location: [31.2243, 30.0460], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308846", image: "https://images.unsplash.com/photo-1619687817846-4a497 rim4" },
+  { name: "برج القاهرة", location: [31.2243, 30.0460], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308846", image: "https://images.unsplash.com/photo-1619687817846-4a497rim4" },
   { name: "حديقة الأزهر", location: [31.2630, 30.0571], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308845", image: "https://images.unsplash.com/photo-1589301066999-4a0b3d9c4d9b" },
   { name: "قلعة صلاح الدين", location: [31.2551, 30.0293], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308843", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c" },
   { name: "المتحف المصري الكبير", location: [31.1330, 29.9780], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308850", image: "https://images.unsplash.com/photo-1591117207239-99a08b78ebb7" },
@@ -424,94 +424,109 @@ window.saveCalendar = function() {
   }
 };
 
-// Placeholder logo (Base64) - Replace with actual logo
-const placeholderLogo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+// Placeholder logo (Base64) - Commented out due to corruption
+// const placeholderLogo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
 window.generatePDF = function() {
   try {
-    if (!window.PDFDocument || !window.blobStream) {
-      throw new Error('PDFKit or Blob Stream libraries are not loaded.');
+    // Check if jsPDF is loaded
+    if (!window.jspdf) {
+      throw new Error('jsPDF library is not loaded. Please check your network or try again later.');
     }
 
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
-    const stream = doc.pipe(blobStream());
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4'
+    });
 
     // Background
-    doc.rect(0, 0, doc.page.width, doc.page.height).fill('#121212');
+    doc.setFillColor(18, 18, 18); // #121212
+    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
 
-    // Logo (Placeholder)
-    doc.image(placeholderLogo, 50, 30, { width: 50 });
+    // Logo Placeholder (Text instead of image)
+    // doc.addImage(placeholderLogo, 'PNG', 50, 30, 50, 50); // Commented out due to corrupt PNG
+    doc.setFontSize(12);
+    doc.setTextColor(255, 215, 0); // #FFD700
+    doc.setFont('helvetica', 'bold');
+    doc.text('NileVibe Logo', 50, 50);
 
     // Title
-    doc.font('Helvetica').fontSize(25).fillColor('#FFD700').text('NileVibe Weekly Schedule', 110, 40);
-
-    // Neon Table
-    const tableTop = 100;
-    const tableLeft = 50;
-    const tableWidth = doc.page.width - 100;
-    const cellHeight = 30;
-    const days = [
-      { name: 'السبت', key: 'saturday' },
-      { name: 'الأحد', key: 'sunday' },
-      { name: 'الإثنين', key: 'monday' },
-      { name: 'الثلاثاء', key: 'tuesday' },
-      { name: 'الأربعاء', key: 'wednesday' },
-      { name: 'الخميس', key: 'thursday' },
-      { name: 'الجمعة', key: 'friday' }
-    ];
+    doc.setFontSize(25);
+    doc.setTextColor(255, 215, 0); // #FFD700
+    doc.setFont('helvetica', 'bold');
+    doc.text('NileVibe Weekly Schedule', 110, 50);
 
     // Table Header
-    doc.rect(tableLeft, tableTop, tableWidth, cellHeight).fill('#FFD700').stroke('#FFD700');
-    doc.fontSize(12).fillColor('#121212').text('اليوم', tableLeft + 10, tableTop + 10);
-    doc.text('الصباح', tableLeft + tableWidth * 0.25 + 10, tableTop + 10);
-    doc.text('الظهر', tableLeft + tableWidth * 0.5 + 10, tableTop + 10);
-    doc.text('المساء', tableLeft + tableWidth * 0.75 + 10, tableTop + 10);
+    let yPos = 100;
+    doc.setFontSize(16);
+    doc.text('الجدول الأسبوعي', 50, yPos);
+    yPos += 20;
+    doc.setFillColor(255, 215, 0); // #FFD700
+    doc.rect(50, yPos, 510, 30, 'F');
+    doc.setFontSize(12);
+    doc.setTextColor(18, 18, 18); // #121212
+    doc.text('اليوم', 50, yPos + 20);
+    doc.text('الصباح', 200, yPos + 20);
+    doc.text('الظهر', 350, yPos + 20);
+    doc.text('المساء', 500, yPos + 20);
+    yPos += 30;
 
     // Table Rows
-    let yPos = tableTop + cellHeight;
-    days.forEach(day => {
-      doc.rect(tableLeft, yPos, tableWidth, cellHeight).fill('#1A1A1A').stroke('#FFD700');
-      doc.fontSize(10).fillColor('#FFFFFF').text(day.name, tableLeft + 10, yPos + 10);
-      doc.text(calendarData[day.key].morning || '-', tableLeft + tableWidth * 0.25 + 10, yPos + 10);
-      doc.text(calendarData[day.key].afternoon || '-', tableLeft + tableWidth * 0.5 + 10, yPos + 10);
-      doc.text(calendarData[day.key].evening || '-', tableLeft + tableWidth * 0.75 + 10, yPos + 10);
-      yPos += cellHeight;
+    const days = {
+      saturday: 'السبت',
+      sunday: 'الأحد',
+      monday: 'الإثنين',
+      tuesday: 'الثلاثاء',
+      wednesday: 'الأربعاء',
+      thursday: 'الخميس',
+      friday: 'الجمعة'
+    };
+    Object.keys(calendarData).forEach((day) => {
+      doc.setFillColor(26, 26, 26); // #1A1A1A
+      doc.rect(50, yPos, 510, 30, 'F');
+      doc.setDrawColor(255, 215, 0); // #FFD700
+      doc.rect(50, yPos, 510, 30);
+      doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255); // #FFFFFF
+      doc.text(days[day], 50, yPos + 20);
+      doc.text(calendarData[day].morning || '-', 200, yPos + 20);
+      doc.text(calendarData[day].afternoon || '-', 350, yPos + 20);
+      doc.text(calendarData[day].evening || '-', 500, yPos + 20);
+      yPos += 30;
     });
 
     // Footer
-    doc.fontSize(10).fillColor('#B0B0B0').text('Powered by NileVibe', 50, doc.page.height - 50);
+    doc.setFontSize(10);
+    doc.setTextColor(176, 176, 176); // #B0B0B0
+    doc.text('Powered by NileVibe', 50, doc.internal.pageSize.height - 50);
 
-    doc.end();
-    stream.on('finish', () => {
-      const blob = stream.toBlob('application/pdf');
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'NileVibe_Schedule.pdf';
-      link.click();
-      URL.revokeObjectURL(url);
-      showNotification(`تم تحميل البرنامج كـ PDF! <a href="${url}" target="_blank">عرض الملف</a>`, 'success');
-    });
-    stream.on('error', (err) => {
-      showNotification('خطأ في إنشاء الـ PDF. جرب مرة أخرى.', 'error');
-      console.error('PDF Stream Error:', err);
-    });
+    // Save PDF
+    const pdfOutput = doc.output('blob');
+    const url = URL.createObjectURL(pdfOutput);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'NileVibe_Schedule.pdf';
+    link.click();
+    showNotification(`تم تحميل البرنامج كـ PDF! <a href="${url}" target="_blank">افتح الملف</a>`, 'success', 5000);
+    setTimeout(() => URL.revokeObjectURL(url), 60000); // Clean up after 60 seconds
   } catch (error) {
-    showNotification(`فشل في تحميل الـ PDF: ${error.message}. تأكد من تحميل المكتبات.`, 'error');
+    showNotification(`فشل في تحميل الـ PDF: ${error.message}. حاول إعادة تحميل الصفحة أو تحقق من الاتصال بالإنترنت.`, 'error');
     console.error('PDF Generation Error:', error);
   }
 };
 
 // Utility Functions
-function showNotification(message, type = 'success') {
+function showNotification(message, type = 'success', duration = 3000) {
   Toastify({
     text: message,
-    duration: 5000, // Extended for PDF link
+    duration: duration,
     gravity: "bottom",
     position: "right",
     backgroundColor: type === 'success' ? "#FFD700" : "#FF5555",
     className: "notification",
-    escapeMarkup: false // Allow HTML in notification (for PDF link)
+    escapeMarkup: false // Allow HTML in notification
   }).showToast();
 }
 
