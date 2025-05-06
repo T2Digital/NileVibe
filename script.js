@@ -147,4 +147,377 @@ window.filterPlaces = function(type) {
 function renderPlacesList(filteredPlaces) {
   const placesList = document.getElementById('places-list');
   placesList.innerHTML = '';
-  filte
+  filteredPlaces.forEach(place => {
+    const placeItem = document.createElement('div');
+    placeItem.className = 'place-item';
+    placeItem.innerHTML = `
+      <img src="${place.image}" alt="${place.name}">
+      <span>${place.name} (${place.type === "restaurant" ? "مطعم" : place.type === "tourist" ? "سياحي" : place.type === "cafe" ? "كافيه" : place.type === "nightlife" ? "سهرات" : place.type === "lounge" ? "لاونج" : "رحلة نيلية"})</span>
+    `;
+    placeItem.onclick = () => {
+      map.flyTo({ center: place.location, zoom: 15 });
+      markers.forEach(m => {
+        if (m._lngLat.lng === place.location[0] && m._lngLat.lat === place.location[1]) {
+          m.togglePopup();
+        }
+      });
+      showNotification(`تم اختيار ${place.name}!`, 'success');
+    };
+    placesList.appendChild(placeItem);
+  });
+  addMarkers(filteredPlaces);
+}
+
+// Booking Logic
+const cars = {
+  economy: [
+    { name: "Nissan Sentra", price: 450, details: "4 ركاب، اقتصادية", image: "https://images.unsplash.com/photo-1588636142475-a62d56692870" },
+    { name: "Kia Cerato", price: 500, details: "4 ركاب، مريحة", image: "https://images.unsplash.com/photo-1618843473801-9f7a78c3b3b8" },
+    { name: "Hyundai Elantra", price: 480, details: "4 ركاب، موفرة", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c" },
+    { name: "Toyota Corolla", price: 470, details: "4 ركاب، متينة", image: "https://images.unsplash.com/photo-1592805723127-0a2c4d4e9d62" },
+    { name: "Mitsubishi Lancer", price: 460, details: "4 ركاب، شبابية", image: "https://images.unsplash.com/photo-1605557626697-2b86e8f8319a" }
+  ],
+  luxury: [
+    { name: "Mercedes C-Class", price: 2000, details: "5 ركاب، فخمة", image: "https://images.unsplash.com/photo-1606220838315-7b6b3e3d4f39" },
+    { name: "BMW 3 Series", price: 2200, details: "5 ركاب، رياضية", image: "https://images.unsplash.com/photo-1607141815636-15eafc9e6b08" },
+    { name: "Audi A4", price: 2100, details: "5 ركاب، تكنولوجيا متقدمة", image: "https://images.unsplash.com/photo-1605557626697-2b86e8f8319a" },
+    { name: "Volvo S60", price: 2300, details: "5 ركاب، أمان عالي", image: "https://images.unsplash.com/photo-1605557626697-2b86e8f8319a" },
+    { name: "Range Rover", price: 3500, details: "5 ركاب، فاخرة جدًا", image: "https://images.unsplash.com/photo-1605557626697-2b86e8f8319a" }
+  ]
+};
+
+let selectedCar = null;
+
+function renderCarGrid() {
+  const carGrid = document.getElementById('car-grid');
+  carGrid.innerHTML = '';
+  Object.keys(cars).forEach(type => {
+    cars[type].forEach(car => {
+      const carCard = document.createElement('div');
+      carCard.className = 'car-card';
+      carCard.innerHTML = `
+        <img src="${car.image}" alt="${car.name}">
+        <h4>${car.name}</h4>
+        <p>${car.details}</p>
+        <p class="price">${car.price} جنيه/يوم</p>
+      `;
+      carCard.onclick = () => {
+        selectedCar = car;
+        document.querySelectorAll('.car-card').forEach(c => c.classList.remove('selected'));
+        carCard.classList.add('selected');
+        calculateTotalPrice();
+      };
+      carGrid.appendChild(carCard);
+    });
+  });
+}
+
+function calculateTotalPrice() {
+  if (!selectedCar) return;
+  const startDate = new Date(document.getElementById('start-date').value);
+  const endDate = new Date(document.getElementById('end-date').value);
+  if (startDate && endDate && endDate >= startDate) {
+    const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
+    const totalPrice = selectedCar.price * days;
+    document.getElementById('total-price').textContent = `السعر الإجمالي: ${totalPrice.toFixed(2)} جنيه (لمدة ${days} يوم)`;
+  } else {
+    document.getElementById('total-price').textContent = 'السعر الإجمالي: 0 جنيه';
+  }
+}
+
+document.getElementById('booking-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!selectedCar) {
+    showNotification('يرجى اختيار سيارة أولاً.', 'error');
+    return;
+  }
+  const startDate = new Date(document.getElementById('start-date').value);
+  const endDate = new Date(document.getElementById('end-date').value);
+  const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
+
+  const bookingData = {
+    car: selectedCar.name,
+    start_date: document.getElementById('start-date').value,
+    end_date: document.getElementById('end-date').value,
+    arrival_time: document.getElementById('arrival-time').value,
+    departure_time: document.getElementById('departure-time').value,
+    pickup_location: document.getElementById('pickup-location').value,
+    dropoff_location: document.getElementById('dropoff-location').value,
+    trip_duration: days,
+    total_price: document.getElementById('total-price').textContent.match(/[\d.]+/)[0]
+  };
+
+  const whatsappMessage = `
+حجز جديد من NileVibe:
+السيارة: ${bookingData.car}
+تاريخ الوصول: ${bookingData.start_date}
+تاريخ المغادرة: ${bookingData.end_date}
+وقت الوصول: ${bookingData.arrival_time}
+وقت المغادرة: ${bookingData.departure_time}
+موقع الاستلام: ${bookingData.pickup_location}
+موقع التسليم: ${bookingData.dropoff_location}
+مدة الرحلة: ${bookingData.trip_duration} يوم
+السعر الإجمالي: ${bookingData.total_price} جنيه
+ملاحظة: يتم دفع المبلغ بالكامل بمجرد الاستلام
+  `.trim();
+  const whatsappUrl = `https://wa.me/+201234567890?text=${encodeURIComponent(whatsappMessage)}`;
+  window.open(whatsappUrl, '_blank');
+
+  showNotification('تم إرسال الحجز إلى واتساب!', 'success');
+  document.getElementById('booking-form').reset();
+  document.getElementById('total-price').textContent = 'السعر الإجمالي: 0 جنيه';
+  selectedCar = null;
+  document.querySelectorAll('.car-card').forEach(c => c.classList.remove('selected'));
+});
+
+document.getElementById('start-date').addEventListener('change', calculateTotalPrice);
+document.getElementById('end-date').addEventListener('change', calculateTotalPrice);
+
+// Schedule Table Logic
+let calendarData = {
+  saturday: { morning: '', afternoon: '', evening: '' },
+  sunday: { morning: '', afternoon: '', evening: '' },
+  monday: { morning: '', afternoon: '', evening: '' },
+  tuesday: { morning: '', afternoon: '', evening: '' },
+  wednesday: { morning: '', afternoon: '', evening: '' },
+  thursday: { morning: '', afternoon: '', evening: '' },
+  friday: { morning: '', afternoon: '', evening: '' }
+};
+
+// Load saved calendar data
+function loadCalendarData() {
+  const savedData = localStorage.getItem('calendarData');
+  if (savedData) {
+    calendarData = JSON.parse(savedData);
+  }
+}
+
+function renderScheduleTable() {
+  const table = document.getElementById('schedule-table');
+  const suggestion = document.getElementById('schedule-suggestion');
+  table.innerHTML = '';
+  const days = [
+    { name: 'السبت', key: 'saturday' },
+    { name: 'الأحد', key: 'sunday' },
+    { name: 'الإثنين', key: 'monday' },
+    { name: 'الثلاثاء', key: 'tuesday' },
+    { name: 'الأربعاء', key: 'wednesday' },
+    { name: 'الخميس', key: 'thursday' },
+    { name: 'الجمعة', key: 'friday' }
+  ];
+
+  // Suggestions
+  const randomPlaces = places.sort(() => 0.5 - Math.random()).slice(0, 5);
+  suggestion.innerHTML = `اقتراحات لرحلتك: ${randomPlaces.map(p => `<a href="${p.url}" target="_blank">${p.name}</a>`).join('، ')}. اكتشف المزيد أدناه!`;
+
+  // Header
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
+    <th>اليوم</th>
+    <th>الصباح</th>
+    <th>الظهر</th>
+    <th>المساء</th>
+  `;
+  table.appendChild(headerRow);
+
+  // Group places by type
+  const groupedPlaces = {
+    restaurant: places.filter(p => p.type === 'restaurant'),
+    cafe: places.filter(p => p.type === 'cafe'),
+    nightlife: places.filter(p => p.type === 'nightlife'),
+    lounge: places.filter(p => p.type === 'lounge'),
+    tourist: places.filter(p => p.type === 'tourist'),
+    nile_cruise: places.filter(p => p.type === 'nile_cruise')
+  };
+
+  // Rows
+  days.forEach(day => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${day.name}</td>
+      <td>
+        <select onchange="updateCalendar('${day.key}', 'morning', this.value)">
+          <option value="">اختر مكانًا</option>
+          <optgroup label="مطاعم">
+            ${groupedPlaces.restaurant.map(p => `<option value="${p.name}" ${calendarData[day.key].morning === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="كافيهات">
+            ${groupedPlaces.cafe.map(p => `<option value="${p.name}" ${calendarData[day.key].morning === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="سهرات">
+            ${groupedPlaces.nightlife.map(p => `<option value="${p.name}" ${calendarData[day.key].morning === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="لاونج">
+            ${groupedPlaces.lounge.map(p => `<option value="${p.name}" ${calendarData[day.key].morning === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="سياحية">
+            ${groupedPlaces.tourist.map(p => `<option value="${p.name}" ${calendarData[day.key].morning === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="رحلات نيلية">
+            ${groupedPlaces.nile_cruise.map(p => `<option value="${p.name}" ${calendarData[day.key].morning === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+        </select>
+      </td>
+      <td>
+        <select onchange="updateCalendar('${day.key}', 'afternoon', this.value)">
+          <option value="">اختر مكانًا</option>
+          <optgroup label="مطاعم">
+            ${groupedPlaces.restaurant.map(p => `<option value="${p.name}" ${calendarData[day.key].afternoon === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="كافيهات">
+            ${groupedPlaces.cafe.map(p => `<option value="${p.name}" ${calendarData[day.key].afternoon === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="سهرات">
+            ${groupedPlaces.nightlife.map(p => `<option value="${p.name}" ${calendarData[day.key].afternoon === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="لاونج">
+            ${groupedPlaces.lounge.map(p => `<option value="${p.name}" ${calendarData[day.key].afternoon === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="سياحية">
+            ${groupedPlaces.tourist.map(p => `<option value="${p.name}" ${calendarData[day.key].afternoon === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="رحلات نيلية">
+            ${groupedPlaces.nile_cruise.map(p => `<option value="${p.name}" ${calendarData[day.key].afternoon === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+        </select>
+      </td>
+      <td>
+        <select onchange="updateCalendar('${day.key}', 'evening', this.value)">
+          <option value="">اختر مكانًا</option>
+          <optgroup label="مطاعم">
+            ${groupedPlaces.restaurant.map(p => `<option value="${p.name}" ${calendarData[day.key].evening === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="كافيهات">
+            ${groupedPlaces.cafe.map(p => `<option value="${p.name}" ${calendarData[day.key].evening === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="سهرات">
+            ${groupedPlaces.nightlife.map(p => `<option value="${p.name}" ${calendarData[day.key].evening === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="لاونج">
+            ${groupedPlaces.lounge.map(p => `<option value="${p.name}" ${calendarData[day.key].evening === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="سياحية">
+            ${groupedPlaces.tourist.map(p => `<option value="${p.name}" ${calendarData[day.key].evening === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+          <optgroup label="رحلات نيلية">
+            ${groupedPlaces.nile_cruise.map(p => `<option value="${p.name}" ${calendarData[day.key].evening === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </optgroup>
+        </select>
+      </td>
+    `;
+    table.appendChild(row);
+  });
+}
+
+window.updateCalendar = function(day, slot, value) {
+  calendarData[day][slot] = value;
+  showNotification(`تم تحديث ${slot === 'morning' ? 'الصباح' : slot === 'afternoon' ? 'الظهر' : 'المساء'} ليوم ${day}!`, 'success');
+};
+
+window.saveCalendar = function() {
+  try {
+    localStorage.setItem('calendarData', JSON.stringify(calendarData));
+    showNotification('تم حفظ البرنامج بنجاح! سيظهر الجدول المحفوظ عند إعادة تحميل الصفحة.', 'success');
+  } catch (error) {
+    showNotification('فشل في حفظ البرنامج. تأكد من إعدادات التخزين.', 'error');
+    console.error('Save Calendar Error:', error);
+  }
+};
+
+// Placeholder logo (Base64) - Replace with actual logo
+const placeholderLogo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+window.generatePDF = function() {
+  try {
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const stream = doc.pipe(blobStream());
+
+    // Background
+    doc.rect(0, 0, doc.page.width, doc.page.height).fill('#121212');
+
+    // Logo (Placeholder)
+    doc.image(placeholderLogo, 50, 30, { width: 50 });
+
+    // Title
+    doc.fontSize(25).fillColor('#FFD700').text('NileVibe Weekly Schedule', 110, 40);
+
+    // Schedule
+    let yPos = 100;
+    Object.keys(calendarData).forEach((day, index) => {
+      const dayName = {
+        saturday: 'السبت',
+        sunday: 'الأحد',
+        monday: 'الإثنين',
+        tuesday: 'الثلاثاء',
+        wednesday: 'الأربعاء',
+        thursday: 'الخميس',
+        friday: 'الجمعة'
+      }[day];
+      doc.fontSize(16).fillColor('#FFD700').text(dayName, 50, yPos);
+      yPos += 20;
+      if (calendarData[day].morning) {
+        doc.fontSize(12).fillColor('#FFFFFF').text(`الصباح: ${calendarData[day].morning}`, 60, yPos);
+        yPos += 15;
+      }
+      if (calendarData[day].afternoon) {
+        doc.fontSize(12).fillColor('#FFFFFF').text(`الظهر: ${calendarData[day].afternoon}`, 60, yPos);
+        yPos += 15;
+      }
+      if (calendarData[day].evening) {
+        doc.fontSize(12).fillColor('#FFFFFF').text(`المساء: ${calendarData[day].evening}`, 60, yPos);
+        yPos += 15;
+      }
+      yPos += 10;
+    });
+
+    // Footer
+    doc.fontSize(10).fillColor('#B0B0B0').text('Powered by NileVibe', 50, doc.page.height - 50);
+
+    doc.end();
+    stream.on('finish', () => {
+      const blob = stream.toBlob('application/pdf');
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'NileVibe_Schedule.pdf';
+      link.click();
+      URL.revokeObjectURL(url);
+      showNotification('تم تحميل البرنامج كـ PDF!', 'success');
+    });
+  } catch (error) {
+    showNotification('فشل في تحميل الـ PDF. جرب مرة أخرى.', 'error');
+    console.error('PDF Generation Error:', error);
+  }
+};
+
+// Utility Functions
+function showNotification(message, type = 'success') {
+  Toastify({
+    text: message,
+    duration: 3000,
+    gravity: "bottom",
+    position: "right",
+    backgroundColor: type === 'success' ? "#FFD700" : "#FF5555",
+    className: "notification"
+  }).showToast();
+}
+
+window.scrollToSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  section.scrollIntoView({ behavior: 'smooth' });
+  if (sectionId === 'schedule') {
+    loadCalendarData();
+    renderScheduleTable();
+  }
+  if (sectionId === 'booking') renderCarGrid();
+};
+
+window.openWhatsApp = function() {
+  window.open('https://wa.me/+201234567890', '_blank');
+};
+
+// Initialize
+initMap();
+loadCalendarData();
+renderScheduleTable();
+renderCarGrid();
