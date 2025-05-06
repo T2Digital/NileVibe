@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NileVibe - اكتشف القاهرة بفخامة مع سيارات وسائقين مميزين!">
+  <title>NileVibe - رحلتك الفاخرة في القاهرة</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/mapbox-gl@2.9.0/dist/mapbox-gl.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <img src="logo-placeholder.png" alt="NileVibe Logo" class="logo">
+      <div class="header-text">
+        <h1>NileVibe</h1>
+        <p>اكتشف القاهرة بأسلوب لا يُنسى</p>
+      </div>
+    </div>
+    <nav class="nav">
+      <button onclick="scrollToSection('video')">الرئيسية</button>
+      <button onclick="scrollToSection('booking')">تأجير سيارة</button>
+      <button onclick="scrollToSection('map')">الخريطة</button>
+      <button onclick="scrollToSection('schedule')">برنامج الرحلة</button>
+      <button onclick="scrollToSection('about')">من نحن</button>
+      <button onclick="scrollToSection('contact')">اتصل بنا</button>
+    </nav>
+  </div>
+
+  <!-- Video Section -->
+  <section id="video" class="section">
+    <div class="video-container">
+      <video autoplay loop muted playsinline class="video-bg">
+        <source src="https://assets.pexels.com/videos/2025129/pexels-aerial-view-of-the-nile-river-2025129.mp4" type="video/mp4">
+      </video>
+      <div class="video-caption">استمتع بالنيل الفاخر<span class="offer"> - خصم 10% اليوم!</span></div>
+    </div>
+  </section>
+
+  <!-- Booking Section -->
+  <section id="booking" class="section">
+    <div class="container">
+      <h2>تأجير سيارة فاخرة</h2>
+      <div class="car-selection">
+        <h3>اختر سيارتك</h3>
+        <div id="car-grid"></div>
+      </div>
+      <form id="booking-form">
+        <label>تاريخ الوصول</label>
+        <input type="date" id="start-date" required>
+        <label>تاريخ المغادرة</label>
+        <input type="date" id="end-date" required>
+        <label>وقت الوصول</label>
+        <input type="time" id="arrival-time" required>
+        <label>وقت المغادرة</label>
+        <input type="time" id="departure-time" required>
+        <label>موقع الاستلام</label>
+        <input type="text" id="pickup-location" placeholder="مثل: مطار القاهرة" required>
+        <label>موقع التسليم</label>
+        <input type="text" id="dropoff-location" placeholder="مثل: فندق ماريوت" required>
+        <div id="total-price">السعر الإجمالي: 0 جنيه</div>
+        <p class="payment-note">يتم دفع المبلغ بالكامل بمجرد الاستلام</p>
+        <button type="submit">تأكيد الحجز</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Map Section -->
+  <section id="map" class="section">
+    <div class="container">
+      <h2>اكتشف الأماكن</h2>
+      <div class="map-wrapper">
+        <div id="map-container">
+          <div id="virtual-tour-label" class="virtual-tour-label"></div>
+        </div>
+        <div class="places-panel">
+          <input type="text" id="place-picker" placeholder="ابحث عن مكان">
+          <div class="filter-buttons">
+            <button class="filter-btn" onclick="filterPlaces('restaurant')">مطاعم</button>
+            <button class="filter-btn" onclick="filterPlaces('cafe')">كافيهات</button>
+            <button class="filter-btn" onclick="filterPlaces('nightlife')">سهرات</button>
+            <button class="filter-btn" onclick="filterPlaces('lounge')">لاونج</button>
+            <button class="filter-btn" onclick="filterPlaces('tourist')">سياحية</button>
+            <button class="filter-btn" onclick="filterPlaces('nile_cruise')">رحلات نيلية</button>
+            <button class="filter-btn" id="virtual-tour-btn">جولة افتراضية</button>
+          </div>
+          <div id="places-list" class="places-list"></div>
+        </div>
+      </div>
+      <div id="map-fallback" class="map-fallback">جارٍ تحميل الخريطة...</div>
+    </div>
+  </section>
+
+  <!-- Schedule Section -->
+  <section id="schedule" class="section">
+    <div class="container">
+      <h2>برنامج الرحلة الأسبوعي</h2>
+      <p id="schedule-suggestion" class="schedule-suggestion"></p>
+      <div class="schedule-table">
+        <table id="schedule-table"></table>
+      </div>
+      <div class="calendar-actions">
+        <button onclick="saveCalendar()">حفظ البرنامج</button>
+        <button onclick="generatePDF()">تحميل كـ PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="section">
+    <div class="container">
+      <h2>من نحن</h2>
+      <p>NileVibe هي تجربتك الفاخرة لاستكشاف القاهرة بسيارات مميزة وسائقين محترفين. نسعى لتقديم رحلة مريحة وممتعة تجمع بين الفخامة والثقافة المصرية الأصيلة، سواء كنت تزور الأهرامات، تستمتع بمأكولات النيل، أو تكتشف الحياة الليلية النابضة بالحياة.</p>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="section">
+    <div class="container">
+      <h2>معلومات التواصل</h2>
+      <div class="contact-info">
+        <p><i class="fas fa-envelope"></i> info@nilevibe.com</p>
+        <p><i class="fas fa-phone"></i> +20 123 456 7890</p>
+        <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/+201234567890" target="_blank">راسلنا على واتساب</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2025 NileVibe. جميع الحقوق محفوظة.</p>
+      <div class="social-icons">
+        <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="https://x.com" target="_blank"><i class="fab fa-x-twitter"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/mapbox-gl@2.9.0/dist/mapbox-gl.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
