@@ -429,6 +429,10 @@ const placeholderLogo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABC
 
 window.generatePDF = function() {
   try {
+    if (!window.PDFDocument || !window.blobStream) {
+      throw new Error('PDFKit or Blob Stream libraries are not loaded.');
+    }
+
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
     const stream = doc.pipe(blobStream());
 
@@ -439,35 +443,39 @@ window.generatePDF = function() {
     doc.image(placeholderLogo, 50, 30, { width: 50 });
 
     // Title
-    doc.fontSize(25).fillColor('#FFD700').text('NileVibe Weekly Schedule', 110, 40);
+    doc.font('Helvetica').fontSize(25).fillColor('#FFD700').text('NileVibe Weekly Schedule', 110, 40);
 
-    // Schedule
-    let yPos = 100;
-    Object.keys(calendarData).forEach((day, index) => {
-      const dayName = {
-        saturday: 'السبت',
-        sunday: 'الأحد',
-        monday: 'الإثنين',
-        tuesday: 'الثلاثاء',
-        wednesday: 'الأربعاء',
-        thursday: 'الخميس',
-        friday: 'الجمعة'
-      }[day];
-      doc.fontSize(16).fillColor('#FFD700').text(dayName, 50, yPos);
-      yPos += 20;
-      if (calendarData[day].morning) {
-        doc.fontSize(12).fillColor('#FFFFFF').text(`الصباح: ${calendarData[day].morning}`, 60, yPos);
-        yPos += 15;
-      }
-      if (calendarData[day].afternoon) {
-        doc.fontSize(12).fillColor('#FFFFFF').text(`الظهر: ${calendarData[day].afternoon}`, 60, yPos);
-        yPos += 15;
-      }
-      if (calendarData[day].evening) {
-        doc.fontSize(12).fillColor('#FFFFFF').text(`المساء: ${calendarData[day].evening}`, 60, yPos);
-        yPos += 15;
-      }
-      yPos += 10;
+    // Neon Table
+    const tableTop = 100;
+    const tableLeft = 50;
+    const tableWidth = doc.page.width - 100;
+    const cellHeight = 30;
+    const days = [
+      { name: 'السبت', key: 'saturday' },
+      { name: 'الأحد', key: 'sunday' },
+      { name: 'الإثنين', key: 'monday' },
+      { name: 'الثلاثاء', key: 'tuesday' },
+      { name: 'الأربعاء', key: 'wednesday' },
+      { name: 'الخميس', key: 'thursday' },
+      { name: 'الجمعة', key: 'friday' }
+    ];
+
+    // Table Header
+    doc.rect(tableLeft, tableTop, tableWidth, cellHeight).fill('#FFD700').stroke('#FFD700');
+    doc.fontSize(12).fillColor('#121212').text('اليوم', tableLeft + 10, tableTop + 10);
+    doc.text('الصباح', tableLeft + tableWidth * 0.25 + 10, tableTop + 10);
+    doc.text('الظهر', tableLeft + tableWidth * 0.5 + 10, tableTop + 10);
+    doc.text('المساء', tableLeft + tableWidth * 0.75 + 10, tableTop + 10);
+
+    // Table Rows
+    let yPos = tableTop + cellHeight;
+    days.forEach(day => {
+      doc.rect(tableLeft, yPos, tableWidth, cellHeight).fill('#1A1A1A').stroke('#FFD700');
+      doc.fontSize(10).fillColor('#FFFFFF').text(day.name, tableLeft + 10, yPos + 10);
+      doc.text(calendarData[day.key].morning || '-', tableLeft + tableWidth * 0.25 + 10, yPos + 10);
+      doc.text(calendarData[day.key].afternoon || '-', tableLeft + tableWidth * 0.5 + 10, yPos + 10);
+      doc.text(calendarData[day.key].evening || '-', tableLeft + tableWidth * 0.75 + 10, yPos + 10);
+      yPos += cellHeight;
     });
 
     // Footer
@@ -482,10 +490,14 @@ window.generatePDF = function() {
       link.download = 'NileVibe_Schedule.pdf';
       link.click();
       URL.revokeObjectURL(url);
-      showNotification('تم تحميل البرنامج كـ PDF!', 'success');
+      showNotification(`تم تحميل البرنامج كـ PDF! <a href="${url}" target="_blank">عرض الملف</a>`, 'success');
+    });
+    stream.on('error', (err) => {
+      showNotification('خطأ في إنشاء الـ PDF. جرب مرة أخرى.', 'error');
+      console.error('PDF Stream Error:', err);
     });
   } catch (error) {
-    showNotification('فشل في تحميل الـ PDF. جرب مرة أخرى.', 'error');
+    showNotification(`فشل في تحميل الـ PDF: ${error.message}. تأكد من تحميل المكتبات.`, 'error');
     console.error('PDF Generation Error:', error);
   }
 };
@@ -494,11 +506,12 @@ window.generatePDF = function() {
 function showNotification(message, type = 'success') {
   Toastify({
     text: message,
-    duration: 3000,
+    duration: 5000, // Extended for PDF link
     gravity: "bottom",
     position: "right",
     backgroundColor: type === 'success' ? "#FFD700" : "#FF5555",
-    className: "notification"
+    className: "notification",
+    escapeMarkup: false // Allow HTML in notification (for PDF link)
   }).showToast();
 }
 
