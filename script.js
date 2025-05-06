@@ -1,6 +1,6 @@
 // Map Initialization (Mapbox)
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWhtYXR5YTAwIiwiYSI6ImNtYWJxbTFoNDExNXEyanIwa2xxcmJwdWoifQ.0WU0DyTqRl9TjV-Go2O2LA';
-let map, markers = [], directions;
+let map, markers = [];
 const places = [
   { name: "زووبا", location: [31.2396, 30.0491], type: "restaurant", color: "#FFD700", url: "https://zoobaeats.com", menu: "zooba_menu.pdf", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4" },
   { name: "الأهرامات", location: [31.1342, 29.9792], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294202-d308847", image: "https://images.unsplash.com/photo-1573051129930-39527d6d8e62" },
@@ -11,7 +11,17 @@ const places = [
   { name: "المتحف المصري", location: [31.2336, 30.0481], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308838", image: "https://images.unsplash.com/photo-1591117207239-99a08b78ebb7" },
   { name: "برج القاهرة", location: [31.2243, 30.0460], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308846", image: "https://images.unsplash.com/photo-1619687817846-4a497 rim4" },
   { name: "حديقة الأزهر", location: [31.2630, 30.0571], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308845", image: "https://images.unsplash.com/photo-1589301066999-4a0b3d9c4d9b" },
-  { name: "قلعة صلاح الدين", location: [31.2551, 30.0293], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308843", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c" }
+  { name: "قلعة صلاح الدين", location: [31.2551, 30.0293], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308843", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c" },
+  { name: "تبولة", location: [31.2425, 30.0505], type: "restaurant", color: "#FFD700", url: "https://taboula.com", image: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe" },
+  { name: "فلفلة", location: [31.2380, 30.0520], type: "restaurant", color: "#FFD700", url: "https://felfela.com", image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c" },
+  { name: "نعمة", location: [31.2410, 30.0490], type: "restaurant", color: "#FFD700", url: "https://na3ma.com", image: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe" },
+  { name: "سوق العصر", location: [31.2375, 30.0515], type: "restaurant", color: "#FFD700", url: "https://soqal3asr.com", image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c" },
+  { name: "قهوة الفيشاوي", location: [31.2600, 30.0475], type: "cafe", color: "#FFD700", url: "https://elfishawy.com", image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085" },
+  { name: "كوستا", location: [31.2450, 30.0530], type: "cafe", color: "#FFD700", url: "https://costa.com", image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085" },
+  { name: "سيموندس", location: [31.2405, 30.0500], type: "cafe", color: "#FFD700", url: "https://simonds.com", image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085" },
+  { name: "The Tap", location: [31.2150, 30.0600], type: "nightlife", color: "#FFD700", url: "https://thetap.com", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819" },
+  { name: "Stage One", location: [31.2200, 30.0580], type: "nightlife", color: "#FFD700", url: "https://stageone.com", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819" },
+  { name: "Gu Bar", location: [31.2250, 30.0550], type: "nightlife", color: "#FFD700", url: "https://gubar.com", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819" }
 ];
 
 function initMap() {
@@ -22,74 +32,52 @@ function initMap() {
   try {
     map = new mapboxgl.Map({
       container: 'map-container',
-      style: 'mapbox://styles/mapbox/satellite-v9', // Satellite View
+      style: 'mapbox://styles/mapbox/satellite-v9',
       center: [31.2357, 30.0444],
       zoom: 12
     });
 
     map.on('load', () => {
       fallback.style.display = 'none';
-      placesList.style.display = 'none';
-      addMarkers(places);
-
-      // Initialize Directions
-      directions = new MapboxDirections({
-        accessToken: mapboxgl.accessToken,
-        unit: 'metric',
-        profile: 'mapbox/driving',
-        language: 'ar',
-        controls: { inputs: false }
-      });
-      map.addControl(directions, 'top-left');
+      renderPlacesList(places);
 
       const input = document.getElementById('place-picker');
       input.addEventListener('input', (e) => {
-        const query = e.target.value;
-        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&bbox=31.0,29.8,31.5,30.2`)
-          .then(response => response.json())
-          .then(data => {
-            if (data.features.length > 0) {
-              const [lng, lat] = data.features[0].center;
-              map.flyTo({ center: [lng, lat], zoom: 15 });
-              new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
-              directions.setDestination([lng, lat]);
-              showNotification(`تم اختيار ${data.features[0].place_name}!`, 'success');
-            } else {
-              showNotification('لم يتم العثور على المكان.', 'error');
-            }
-          });
+        const query = e.target.value.toLowerCase();
+        const filtered = places.filter(p => p.name.toLowerCase().includes(query));
+        renderPlacesList(filtered);
       });
 
       document.getElementById('virtual-tour-btn').addEventListener('click', () => {
+        // Define tour path with place names
         const tourPath = [
-          [31.1342, 29.9792], // Pyramids
-          [31.2396, 30.0491], // Zooba
-          [31.2108, 30.0626], // Cairo Jazz Club
-          [31.2336, 30.0481], // Egyptian Museum
-          [31.2243, 30.0460]  // Cairo Tower
+          { location: [31.1342, 29.9792], name: "الأهرامات" },
+          { location: [31.2396, 30.0491], name: "زووبا" },
+          { location: [31.2108, 30.0626], name: "Cairo Jazz Club" },
+          { location: [31.2336, 30.0481], name: "المتحف المصري" },
+          { location: [31.2243, 30.0460], name: "برج القاهرة" },
+          { location: [31.2425, 30.0505], name: "تبولة" }
         ];
-        map.fitBounds([tourPath[0], tourPath[tourPath.length - 1]], { padding: 50 });
         let i = 0;
+        showNotification('بدأت الجولة الافتراضية!', 'success');
         const tourInterval = setInterval(() => {
           if (i < tourPath.length) {
-            map.flyTo({ center: tourPath[i], zoom: 15 });
-            if (i > 0) {
-              directions.setOrigin(tourPath[i - 1]);
-              directions.setDestination(tourPath[i]);
-            }
+            map.flyTo({ center: tourPath[i].location, zoom: 15 });
+            // Show place name in a notification
+            showNotification(`الآن في: ${tourPath[i].name}`, 'info');
             i++;
           } else {
             clearInterval(tourInterval);
+            showNotification('انتهت الجولة الافتراضية!', 'success');
           }
         }, 3000);
-        showNotification('بدأت الجولة الافتراضية!', 'success');
       });
     });
   } catch (error) {
     fallback.textContent = `تعذر تحميل الخريطة: ${error.message}. جرب الأماكن أدناه.`;
     console.error('Map Error:', error);
     placesList.style.display = 'block';
-    renderPlacesList();
+    renderPlacesList(places);
   }
 }
 
@@ -115,14 +103,15 @@ function addMarkers(filteredPlaces) {
 
 window.filterPlaces = function(type) {
   const filtered = type ? places.filter(p => p.type === type) : places;
+  renderPlacesList(filtered);
   addMarkers(filtered);
   showNotification(`عرض ${type === 'restaurant' ? 'المطاعم' : type === 'cafe' ? 'الكافيهات' : type === 'nightlife' ? 'الديسكوهات' : 'الأماكن السياحية'}!`, 'success');
 };
 
-function renderPlacesList() {
+function renderPlacesList(filteredPlaces) {
   const placesList = document.getElementById('places-list');
   placesList.innerHTML = '';
-  places.forEach(place => {
+  filteredPlaces.forEach(place => {
     const placeItem = document.createElement('div');
     placeItem.className = 'place-item';
     placeItem.innerHTML = `
@@ -131,10 +120,16 @@ function renderPlacesList() {
     `;
     placeItem.onclick = () => {
       map.flyTo({ center: place.location, zoom: 15 });
+      markers.forEach(m => {
+        if (m._lngLat.lng === place.location[0] && m._lngLat.lat === place.location[1]) {
+          m.togglePopup();
+        }
+      });
       showNotification(`تم اختيار ${place.name}!`, 'success');
     };
     placesList.appendChild(placeItem);
   });
+  addMarkers(filteredPlaces);
 }
 
 // Booking Logic
@@ -168,7 +163,7 @@ function renderCarGrid() {
         <img src="${car.image}" alt="${car.name}">
         <h4>${car.name}</h4>
         <p>${car.details}</p>
-        <p>${car.price} جنيه/يوم</p>
+        <p class="price">${car.price} جنيه/يوم</p>
       `;
       carCard.onclick = () => {
         selectedCar = car;
@@ -216,7 +211,6 @@ document.getElementById('booking-form').addEventListener('submit', (e) => {
     total_price: document.getElementById('total-price').textContent.match(/[\d.]+/)[0]
   };
 
-  // إرسال البيانات لواتساب
   const whatsappMessage = `
 حجز جديد من NileVibe:
 السيارة: ${bookingData.car}
@@ -243,54 +237,76 @@ document.getElementById('booking-form').addEventListener('submit', (e) => {
 document.getElementById('start-date').addEventListener('change', calculateTotalPrice);
 document.getElementById('end-date').addEventListener('change', calculateTotalPrice);
 
-// Schedule Logic
-let scheduleData = [
-  { time: "10:00 صباحًا", activity: "استقبال", place: "مطار القاهرة", type: "transport", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e" },
-  { time: "2:00 ظهرًا", activity: "غداء", place: "زووبا", type: "restaurant", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4" },
-  { time: "8:00 مساءً", activity: "زيارة", place: "الأهرامات", type: "tourist", image: "https://images.unsplash.com/photo-1573051129930-39527d6d8e62" }
-];
+// Schedule Table Logic
+let calendarData = {
+  saturday: { morning: '', afternoon: '', evening: '' },
+  sunday: { morning: '', afternoon: '', evening: '' },
+  monday: { morning: '', afternoon: '', evening: '' },
+  tuesday: { morning: '', afternoon: '', evening: '' },
+  wednesday: { morning: '', afternoon: '', evening: '' },
+  thursday: { morning: '', afternoon: '', evening: '' },
+  friday: { morning: '', afternoon: '', evening: '' }
+};
 
-function renderSchedule() {
-  const scheduleDiv = document.getElementById('schedule-list');
-  scheduleDiv.innerHTML = '';
-  scheduleData.forEach((item, index) => {
-    const color = item.type === 'restaurant' ? '#FFD700' : item.type === 'tourist' ? '#FFD700' : item.type === 'cafe' ? '#FFD700' : '#FFD700';
-    scheduleDiv.innerHTML += `
-      <div class="activity">
-        <span>${item.time}: ${item.activity} في ${item.place}</span>
-        <div class="icon" style="background: ${color}"></div>
-        <img src="${item.image}" alt="${item.place}">
-        <button onclick="removeActivity(${index})" style="background: #FFD700; color: #121212; padding: 5px 10px; border-radius: 5px;">حذف</button>
-      </div>
+function renderScheduleTable() {
+  const table = document.getElementById('schedule-table');
+  table.innerHTML = '';
+  const days = [
+    { name: 'السبت', key: 'saturday' },
+    { name: 'الأحد', key: 'sunday' },
+    { name: 'الإثنين', key: 'monday' },
+    { name: 'الثلاثاء', key: 'tuesday' },
+    { name: 'الأربعاء', key: 'wednesday' },
+    { name: 'الخميس', key: 'thursday' },
+    { name: 'الجمعة', key: 'friday' }
+  ];
+
+  // Header
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
+    <th>اليوم</th>
+    <th>الصباح</th>
+    <th>الظهر</th>
+    <th>المساء</th>
+  `;
+  table.appendChild(headerRow);
+
+  // Rows
+  days.forEach(day => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${day.name}</td>
+      <td>
+        <select onchange="updateCalendar('${day.key}', 'morning', this.value)">
+          <option value="">اختر مكانًا</option>
+          ${places.map(p => `<option value="${p.name}" ${calendarData[day.key].morning === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select onchange="updateCalendar('${day.key}', 'afternoon', this.value)">
+          <option value="">اختر مكانًا</option>
+          ${places.map(p => `<option value="${p.name}" ${calendarData[day.key].afternoon === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select onchange="updateCalendar('${day.key}', 'evening', this.value)">
+          <option value="">اختر مكانًا</option>
+          ${places.map(p => `<option value="${p.name}" ${calendarData[day.key].evening === p.name ? 'selected' : ''}>${p.name}</option>`).join('')}
+        </select>
+      </td>
     `;
+    table.appendChild(row);
   });
 }
 
-window.addActivity = function() {
-  const newActivityInput = document.getElementById('new-activity').value;
-  if (newActivityInput) {
-    const [time, ...rest] = newActivityInput.split(':');
-    const activity = rest.join(':').trim();
-    const [act, place] = activity.split('في').map(s => s.trim());
-    scheduleData.push({
-      time: time.trim(),
-      activity: act,
-      place: place || 'غير محدد',
-      type: 'custom',
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e'
-    });
-    renderSchedule();
-    document.getElementById('new-activity').value = '';
-    showNotification('تم إضافة النشاط بنجاح!', 'success');
-  } else {
-    showNotification('يرجى إدخال نشاط صالح.', 'error');
-  }
+window.updateCalendar = function(day, slot, value) {
+  calendarData[day][slot] = value;
+  showNotification(`تم تحديث ${slot === 'morning' ? 'الصباح' : slot === 'afternoon' ? 'الظهر' : 'المساء'} ليوم ${day}!`, 'success');
 };
 
-window.removeActivity = function(index) {
-  scheduleData.splice(index, 1);
-  renderSchedule();
-  showNotification('تم حذف النشاط بنجاح!', 'success');
+window.saveCalendar = function() {
+  localStorage.setItem('calendarData', JSON.stringify(calendarData));
+  showNotification('تم حفظ الجدول بنجاح!', 'success');
 };
 
 window.generatePDF = function() {
@@ -298,16 +314,34 @@ window.generatePDF = function() {
   const stream = doc.pipe(blobStream());
 
   doc.rect(0, 0, doc.page.width, doc.page.height).fill('#121212');
-  doc.fontSize(25).fillColor('#FFD700').text('NileVibe Trip Schedule', 50, 50);
+  doc.fontSize(25).fillColor('#FFD700').text('NileVibe Weekly Schedule', 50, 50);
 
-  scheduleData.forEach((item, index) => {
-    const yPos = 100 + (index * 50);
-    doc.fontSize(14)
-       .fillColor('#FFFFFF')
-       .text(`${item.time}: ${item.activity} في ${item.place}`, 50, yPos);
-    doc.fillColor('#FFD700')
-       .circle(40, yPos + 5, 5)
-       .fill();
+  let yPos = 100;
+  Object.keys(calendarData).forEach((day, index) => {
+    const dayName = {
+      saturday: 'السبت',
+      sunday: 'الأحد',
+      monday: 'الإثنين',
+      tuesday: 'الثلاثاء',
+      wednesday: 'الأربعاء',
+      thursday: 'الخميس',
+      friday: 'الجمعة'
+    }[day];
+    doc.fontSize(16).fillColor('#FFD700').text(dayName, 50, yPos);
+    yPos += 20;
+    if (calendarData[day].morning) {
+      doc.fontSize(12).fillColor('#FFFFFF').text(`الصباح: ${calendarData[day].morning}`, 60, yPos);
+      yPos += 15;
+    }
+    if (calendarData[day].afternoon) {
+      doc.fontSize(12).fillColor('#FFFFFF').text(`الظهر: ${calendarData[day].afternoon}`, 60, yPos);
+      yPos += 15;
+    }
+    if (calendarData[day].evening) {
+      doc.fontSize(12).fillColor('#FFFFFF').text(`المساء: ${calendarData[day].evening}`, 60, yPos);
+      yPos += 15;
+    }
+    yPos += 10;
   });
 
   doc.fontSize(10).fillColor('#B0B0B0').text('Powered by NileVibe', 50, doc.page.height - 50);
@@ -318,24 +352,6 @@ window.generatePDF = function() {
   });
 };
 
-// Slider Initialization
-const swiper = new Swiper('.swiper-container', {
-  loop: true,
-  autoplay: {
-    delay: 7000, // زيادة الوقت لإظهار النصوص الديناميكية
-    disableOnInteraction: false,
-  },
-  pagination: {
-    el: '.swiper-pagination',
-    clickable: true,
-  },
-  navigation: {
-    nextEl: '.swiper-button-next',
-    prevEl: '.swiper-button-prev',
-  },
-  speed: 1000, // انتقال أكثر سلاسة
-});
-
 // Utility Functions
 function showNotification(message, type = 'success') {
   Toastify({
@@ -343,24 +359,23 @@ function showNotification(message, type = 'success') {
     duration: 3000,
     gravity: "bottom",
     position: "right",
-    backgroundColor: type === 'success' ? "#FFD700" : "#FF5555",
+    backgroundColor: type === 'success' ? "#FFD700" : type === 'error' ? "#FF5555" : "#FFEA00",
     className: "notification"
   }).showToast();
 }
 
-window.showSection = function(sectionId) {
-  document.querySelectorAll('.section').forEach(section => {
-    section.classList.remove('active');
-  });
-  document.getElementById(sectionId).classList.add('active');
-  if (sectionId === 'schedule') renderSchedule();
+window.scrollToSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  section.scrollIntoView({ behavior: 'smooth' });
+  if (sectionId === 'schedule') renderScheduleTable();
   if (sectionId === 'booking') renderCarGrid();
 };
 
 window.openWhatsApp = function() {
-  window.open('https://wa.me/+201234567890', '_blank');
+  window.open('https://wa.me/+201125845757', '_blank');
 };
 
 // Initialize
-showSection('home');
 initMap();
+renderScheduleTable();
+renderCarGrid();
