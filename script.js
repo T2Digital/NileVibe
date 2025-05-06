@@ -1,6 +1,6 @@
 // Map Initialization (Mapbox)
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWhtYXR5YTAwIiwiYSI6ImNtYWJxbTFoNDExNXEyanIwa2xxcmJwdWoifQ.0WU0DyTqRl9TjV-Go2O2LA'; // مفتاح Mapbox بتاعك
-let map, markers = [];
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWhtYXR5YTAwIiwiYSI6ImNtYWJxbTFoNDExNXEyanIwa2xxcmJwdWoifQ.0WU0DyTqRl9TjV-Go2O2LA';
+let map, markers = [], directions;
 const places = [
   { name: "زووبا", location: [31.2396, 30.0491], type: "restaurant", color: "#FFD700", url: "https://zoobaeats.com", menu: "zooba_menu.pdf", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4" },
   { name: "الأهرامات", location: [31.1342, 29.9792], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294202-d308847", image: "https://images.unsplash.com/photo-1573051129930-39527d6d8e62" },
@@ -8,6 +8,10 @@ const places = [
   { name: "قهوة", location: [31.2431, 30.0512], type: "cafe", color: "#FFD700", url: "https://qahwa.com", image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085" },
   { name: "كشري أبو طارق", location: [31.2400, 30.0510], type: "restaurant", color: "#FFD700", url: "https://abutarek.com", image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c" },
   { name: "خان الخليلي", location: [31.2622, 30.0478], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308844", image: "https://images.unsplash.com/photo-1602774897447-16c7273db418" },
+  { name: "المتحف المصري", location: [31.2336, 30.0481], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308838", image: "https://images.unsplash.com/photo-1591117207239-99a08b78ebb7" },
+  { name: "برج القاهرة", location: [31.2243, 30.0460], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308846", image: "https://images.unsplash.com/photo-1619687817846-4a497 rim4" },
+  { name: "حديقة الأزهر", location: [31.2630, 30.0571], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308845", image: "https://images.unsplash.com/photo-1589301066999-4a0b3d9c4d9b" },
+  { name: "قلعة صلاح الدين", location: [31.2551, 30.0293], type: "tourist", color: "#FFD700", url: "https://www.tripadvisor.com/Attraction_Review-g294201-d308843", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c" }
 ];
 
 function initMap() {
@@ -18,7 +22,7 @@ function initMap() {
   try {
     map = new mapboxgl.Map({
       container: 'map-container',
-      style: 'mapbox://styles/mapbox/dark-v10',
+      style: 'mapbox://styles/mapbox/satellite-v9', // Satellite View
       center: [31.2357, 30.0444],
       zoom: 12
     });
@@ -28,10 +32,19 @@ function initMap() {
       placesList.style.display = 'none';
       addMarkers(places);
 
+      // Initialize Directions
+      directions = new MapboxDirections({
+        accessToken: mapboxgl.accessToken,
+        unit: 'metric',
+        profile: 'mapbox/driving',
+        language: 'ar',
+        controls: { inputs: false }
+      });
+      map.addControl(directions, 'top-left');
+
       const input = document.getElementById('place-picker');
       input.addEventListener('input', (e) => {
         const query = e.target.value;
-        // Mapbox Geocoding API
         fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&bbox=31.0,29.8,31.5,30.2`)
           .then(response => response.json())
           .then(data => {
@@ -39,6 +52,7 @@ function initMap() {
               const [lng, lat] = data.features[0].center;
               map.flyTo({ center: [lng, lat], zoom: 15 });
               new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
+              directions.setDestination([lng, lat]);
               showNotification(`تم اختيار ${data.features[0].place_name}!`, 'success');
             } else {
               showNotification('لم يتم العثور على المكان.', 'error');
@@ -50,19 +64,24 @@ function initMap() {
         const tourPath = [
           [31.1342, 29.9792], // Pyramids
           [31.2396, 30.0491], // Zooba
-          [31.2108, 30.0626]  // Cairo Jazz Club
+          [31.2108, 30.0626], // Cairo Jazz Club
+          [31.2336, 30.0481], // Egyptian Museum
+          [31.2243, 30.0460]  // Cairo Tower
         ];
-        const coordinates = tourPath.map(coord => ({ lng: coord[0], lat: coord[1] }));
         map.fitBounds([tourPath[0], tourPath[tourPath.length - 1]], { padding: 50 });
         let i = 0;
         const tourInterval = setInterval(() => {
           if (i < tourPath.length) {
             map.flyTo({ center: tourPath[i], zoom: 15 });
+            if (i > 0) {
+              directions.setOrigin(tourPath[i - 1]);
+              directions.setDestination(tourPath[i]);
+            }
             i++;
           } else {
             clearInterval(tourInterval);
           }
-        }, 2000);
+        }, 3000);
         showNotification('بدأت الجولة الافتراضية!', 'success');
       });
     });
@@ -81,7 +100,8 @@ function addMarkers(filteredPlaces) {
     const marker = new mapboxgl.Marker({ color: place.color })
       .setLngLat(place.location)
       .setPopup(new mapboxgl.Popup().setHTML(`
-        <div style="font-family: Montserrat; text-align: right; color: #121212;">
+        <div style="font-family: Montserrat; text-align: right; color: #121212; max-width: 200px;">
+          <img src="${place.image}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px; margin-bottom: 10px;">
           <strong>${place.name}</strong><br>
           <span>${place.type === "restaurant" ? "مطعم" : place.type === "tourist" ? "مكان سياحي" : place.type === "cafe" ? "كافيه" : "حياة ليلية"}</span><br>
           ${place.menu ? `<a href="${place.menu}" target="_blank">المنيو</a><br>` : ''}
@@ -109,7 +129,10 @@ function renderPlacesList() {
       <img src="${place.image}" alt="${place.name}">
       <span>${place.name} (${place.type === "restaurant" ? "مطعم" : place.type === "tourist" ? "سياحي" : place.type === "cafe" ? "كافيه" : "ديسكو"})</span>
     `;
-    placeItem.onclick = () => showNotification(`تم اختيار ${place.name}!`, 'success');
+    placeItem.onclick = () => {
+      map.flyTo({ center: place.location, zoom: 15 });
+      showNotification(`تم اختيار ${place.name}!`, 'success');
+    };
     placesList.appendChild(placeItem);
   });
 }
@@ -205,6 +228,7 @@ document.getElementById('booking-form').addEventListener('submit', (e) => {
 موقع التسليم: ${bookingData.dropoff_location}
 مدة الرحلة: ${bookingData.trip_duration} يوم
 السعر الإجمالي: ${bookingData.total_price} جنيه
+ملاحظة: يتم دفع المبلغ بالكامل بمجرد الاستلام
   `.trim();
   const whatsappUrl = `https://wa.me/+201234567890?text=${encodeURIComponent(whatsappMessage)}`;
   window.open(whatsappUrl, '_blank');
@@ -298,7 +322,7 @@ window.generatePDF = function() {
 const swiper = new Swiper('.swiper-container', {
   loop: true,
   autoplay: {
-    delay: 5000,
+    delay: 7000, // زيادة الوقت لإظهار النصوص الديناميكية
     disableOnInteraction: false,
   },
   pagination: {
@@ -309,6 +333,7 @@ const swiper = new Swiper('.swiper-container', {
     nextEl: '.swiper-button-next',
     prevEl: '.swiper-button-prev',
   },
+  speed: 1000, // انتقال أكثر سلاسة
 });
 
 // Utility Functions
