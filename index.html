@@ -24,7 +24,7 @@
       <button onclick="scrollToSection('video')">الرئيسية</button>
       <button onclick="scrollToSection('booking')">تأجير سيارة</button>
       <button onclick="scrollToSection('map')">الخريطة</button>
-      <button onclick="scrollToSection('schedule')">جدول الرحلة</button>
+      <button onclick="scrollToSection('schedule')">برنامج الرحلة</button>
       <button onclick="scrollToSection('about')">من نحن</button>
       <button onclick="scrollToSection('contact')">اتصل بنا</button>
     </nav>
@@ -73,14 +73,18 @@
     <div class="container">
       <h2>اكتشف الأماكن</h2>
       <div class="map-wrapper">
-        <div id="map-container"></div>
+        <div id="map-container">
+          <div id="virtual-tour-label" class="virtual-tour-label"></div>
+        </div>
         <div class="places-panel">
           <input type="text" id="place-picker" placeholder="ابحث عن مكان">
           <div class="filter-buttons">
             <button class="filter-btn" onclick="filterPlaces('restaurant')">مطاعم</button>
             <button class="filter-btn" onclick="filterPlaces('cafe')">كافيهات</button>
-            <button class="filter-btn" onclick="filterPlaces('nightlife')">ديسكوهات</button>
+            <button class="filter-btn" onclick="filterPlaces('nightlife')">سهرات</button>
+            <button class="filter-btn" onclick="filterPlaces('lounge')">لاونج</button>
             <button class="filter-btn" onclick="filterPlaces('tourist')">سياحية</button>
+            <button class="filter-btn" onclick="filterPlaces('nile_cruise')">رحلات نيلية</button>
             <button class="filter-btn" id="virtual-tour-btn">جولة افتراضية</button>
           </div>
           <div id="places-list" class="places-list"></div>
@@ -93,13 +97,14 @@
   <!-- Schedule Section -->
   <section id="schedule" class="section">
     <div class="container">
-      <h2>جدول الرحلة الأسبوعي</h2>
+      <h2>برنامج الرحلة الأسبوعي</h2>
+      <p id="schedule-suggestion" class="schedule-suggestion"></p>
       <div class="schedule-table">
         <table id="schedule-table"></table>
       </div>
       <div class="calendar-actions">
-        <button onclick="saveCalendar()">حفظ الجدول</button>
-        <button onclick="generatePDF()">تصدير كـ PDF</button>
+        <button onclick="saveCalendar()">حفظ البرنامج</button>
+        <button onclick="generatePDF()">تحميل كـ PDF</button>
       </div>
     </div>
   </section>
